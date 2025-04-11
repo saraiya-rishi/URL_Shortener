@@ -215,46 +215,48 @@
     <div class="main-container">
         <h2>🔗 Custom URL Shortener</h2>
 
-        @using (Html.BeginForm("ShortenUrl", "Url", FormMethod.Post))
-        {
-            <label>Enter Long URL:</label>
-            @Html.TextBoxFor(m => m.LongUrl)
+        <form asp-action="Index" asp-controller="Url" method="post">
+            <label>Enter Long URL:</label><br>
+            <input type="text" name="LongUrl"><br><br>
 
-            <label>Custom Alias (optional):</label>
-            @Html.TextBoxFor(m => m.CustomAlias)
+            <label>Custom Alias (optional):</label><br>
+            <input type="text" name="CustomAlias"><br><br>
 
-            <label>Password (optional):</label>
-            @Html.PasswordFor(m => m.Password)
+            <label>Password (optional):</label><br>
+            <input type="password" name="Password"><br><br>
 
-            <label>Expiry Date (optional):</label>
-            <input type="datetime-local" name="ExpiryDate" />
+            <label>Expiry Date (optional):</label><br>
+            <input type="datetime-local" name="ExpiryDate"><br><br>
 
-            <div class="d-flex justify-content-center">
-                <input type="submit" value="Shorten URL" class="btn" />
-            </div>
-        }
+            <input type="submit" class="btn" value="Shorten URL">
+        </form>
 
         @if (ViewBag.ShortUrl != null)
         {
-            <div class="result"> 
-                <strong>Short URL:</strong><br />
-                ✅ <span id="shortUrlText" class="short-url">
-                    <a href="@ViewBag.ShortUrl" target="_blank">@ViewBag.ShortUrl</a>
-                </span>
-                
-                <br /> 
-                <button class="btn copy-btn my-2" onclick="copyToClipboard()">Copy</button>
+            <div class="main-container">
 
-               
-                <div class="qr-container">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=@ViewBag.ShortUrl" alt="QR Code" />
+                <div class="result">
+                    <strong>Short URL:</strong><br />
+                    ✅ <span id="shortUrlText" class="short-url">
+                        <a href="@ViewBag.ShortUrl" target="_blank">@ViewBag.ShortUrl</a>
+                    </span>
+
+                    <br />
+                    <button class="btn copy-btn my-2" onclick="copyToClipboard()">Copy</button>
+
+
+                    <div class="qr-container">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=@ViewBag.ShortUrl" alt="QR Code" />
+                    </div>
                 </div>
-            </div>
+           </div>
         }
 
         @if (ViewBag.Error != null)
         {
-            <div class="error">@ViewBag.Error</div>
+            <div class="main-container">
+                <div class="error">@ViewBag.Error</div>
+            </div>
         }
 
        
@@ -262,11 +264,10 @@
 
     <script>
         function copyToClipboard() {
-            var copyText = document.getElementById("shortUrl");
-            copyText.select();
-            copyText.setSelectionRange(0, 99999);
-            document.execCommand("copy");
-            //alert("Copied the URL: " + copyText.value);
+            const urlText = document.getElementById("shortUrlText").textContent;
+            navigator.clipboard.writeText(urlText).then(() => {
+                alert("Short URL copied to clipboard!");
+            });
         }
 
     </script>

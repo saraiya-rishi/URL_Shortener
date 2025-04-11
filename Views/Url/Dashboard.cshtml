@@ -1,0 +1,100 @@
+﻿@model List<URL_Shortener.Models.UrlModel>
+@{
+    ViewBag.Title = "Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .dashboard-container {
+        background: rgba(240, 248, 255, 0.7); /* frosty silver */
+        padding: 30px;
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .dashboard-header {
+        font-size: 28px;
+        margin-bottom: 20px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    th, td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #e0e0e0;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f0f0f0;
+    }
+
+    a.action-btn {
+        margin-right: 8px;
+        color: #fff;
+        padding: 6px 12px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .edit-btn {
+        background-color: #007bff;
+    }
+
+    .delete-btn {
+        background-color: #dc3545;
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="dashboard-header">📋 Your Shortened URLs</div>
+    @if (Model != null && Model.Any())
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Short URL</th>
+                    <th>Original URL</th>
+                    <th>Clicks</th>
+                    <th>Expiry</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.Count; i++)
+                {
+                    var item = Model[i];
+                    <tr>
+                        <td>@(i + 1)</td>
+                        <td>
+                            <a href="@Url.Action("Go", "Url", new { shortCode = item.ShortCode })" target="_blank">
+                                @Url.Action("Go", "Url", new { shortCode = item.ShortCode })
+                            </a>
+                        </td>
+                        <td>@item.LongUrl</td>
+                        <td>@item.ClickCount</td>
+                        <td>@(item.ExpiryDate?.ToString("yyyy-MM-dd") ?? "∞")</td>
+                        <td>
+                            <a href="@Url.Action("Edit", "Url", new { id = item.Id })" class="action-btn edit-btn">Edit</a>
+                            <a href="@Url.Action("Delete", "Url", new { id = item.Id })" class="action-btn delete-btn" onclick="return confirm('Are you sure you want to delete this URL?');">Delete</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No URLs found.</p>
+    }
+</div>
