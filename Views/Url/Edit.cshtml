@@ -1,0 +1,94 @@
+﻿@model URL_Shortener.Models.UrlModel
+@{
+    ViewBag.Title = "Edit URL";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .edit-container {
+        background: rgba(240, 248, 255, 0.7); /* frosty silver */
+        padding: 30px;
+        border-radius: 20px;
+        max-width: 600px;
+        margin: 40px auto;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+        .edit-container h2 {
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 26px;
+            color: #333;
+        }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+        .form-group label {
+            font-weight: 500;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 15px;
+    }
+
+    .btn-save {
+        background-color: #28a745;
+        color: white;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-cancel {
+        margin-left: 10px;
+        background-color: #6c757d;
+        color: white;
+        padding: 10px 18px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: none;
+        text-decoration: none;
+    }
+</style>
+
+<div class="edit-container">
+    <h2>✏️ Edit Shortened URL</h2>
+
+    @using (Html.BeginForm("Edit", "Url", FormMethod.Post))
+    {
+        @Html.HiddenFor(m => m.Id)
+
+        <div class="form-group">
+            <label>Original URL:</label>
+            @Html.TextBoxFor(m => m.LongUrl, new { @class = "form-control" })
+        </div>
+
+        <div class="form-group">
+            <label>Short Code:</label>
+            @Html.TextBoxFor(m => m.ShortCode, new { @class = "form-control" })
+        </div>
+
+        <div class="form-group">
+            <label>Password (optional):</label>
+            @Html.TextBoxFor(m => m.Password, new { @class = "form-control" })
+        </div>
+
+        <div class="form-group">
+            <label>Expiry Date (optional):</label>
+            @Html.TextBoxFor(m => m.ExpiryDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+        </div>
+
+        <button type="submit" class="btn-save">💾 Save Changes</button>
+        <a href="@Url.Action("Dashboard", "Url")" class="btn-cancel">Cancel</a>
+    }
+</div>

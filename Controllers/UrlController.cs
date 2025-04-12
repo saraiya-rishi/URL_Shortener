@@ -78,7 +78,7 @@ namespace URL_Shortener.Controllers
 {
     public class UrlController : Controller
     {
-        private readonly string connectionString = "Data Source=SSMOZ9;Initial Catalog=URL_Demo;User ID=sa;Password=SSM@123;Encrypt=False";
+        private readonly string connectionString = "Data Source=RISHI\\SSMSERVER;Initial Catalog=URL_Demo;User ID=sa;Password=rishi8102;Encrypt=False";
 
         public ActionResult Index()
         {
@@ -86,7 +86,7 @@ namespace URL_Shortener.Controllers
         }
 
         [HttpPost]
-        public ActionResult ShortenUrl(UrlModel model)
+        public ActionResult Index(UrlModel model)
         {
             if (string.IsNullOrEmpty(model.LongUrl))
             {
@@ -101,22 +101,25 @@ namespace URL_Shortener.Controllers
                 string checkQuery = "SELECT COUNT(*) FROM UrlMappings WHERE ShortCode = @ShortCode";
                 SqlCommand checkCmd = new SqlCommand(checkQuery, conn);
                 checkCmd.Parameters.AddWithValue("@ShortCode", shortCode);
+
                 conn.Open();
                 int count = (int)checkCmd.ExecuteScalar();
                 if (count > 0)
                 {
-                    ViewBag.Error = "Custom alias already taken.";
+                    ViewBag.Error = "Short code already exists. Try another alias.";
                     return View("Index");
                 }
 
-                string insertQuery = "INSERT INTO UrlMappings (LongUrl, ShortCode, Password, ExpiryDate, ClickCount) VALUES (@LongUrl, @ShortCode, @Password, @ExpiryDate, 0)";
+                string insertQuery = "INSERT INTO UrlMappings (LongUrl, ShortCode, ExpiryDate, Password, ClickCount, CreatedAt) VALUES (@LongUrl, @ShortCode, @ExpiryDate, @Password, 0, @CreatedAt)";
                 SqlCommand cmd = new SqlCommand(insertQuery, conn);
                 cmd.Parameters.AddWithValue("@LongUrl", model.LongUrl);
                 cmd.Parameters.AddWithValue("@ShortCode", shortCode);
-                cmd.Parameters.AddWithValue("@Password", string.IsNullOrEmpty(model.Password) ? (object)DBNull.Value : model.Password);
-                cmd.Parameters.AddWithValue("@ExpiryDate", model.ExpiryDate.HasValue ? (object)model.ExpiryDate.Value : DBNull.Value);
+                cmd.Parameters.AddWithValue("@ExpiryDate", (object?)model.ExpiryDate ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Password", (object?)model.Password ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
                 cmd.ExecuteNonQuery();
             }
+        
             string baseUrl = $"{Request.Scheme}://{Request.Host}";
             string shortPath = Url.Action("Go", "Url", new { id = shortCode });
             ViewBag.ShortUrl = baseUrl + shortPath;
@@ -208,6 +211,83 @@ namespace URL_Shortener.Controllers
                 conn.Open();
                 cmd.ExecuteNonQuery();
             }
+        }
+
+        public ActionResult Dashboard()
+        {
+            List<UrlModel> urls = new List<UrlModel>();
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                string query = "SELECT * FROM UrlMappings ORDER BY CreatedAt DESC";
+                SqlCommand cmd = new SqlCommand(query, conn);
+                conn.Open();
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    urls.Add(new UrlModel
+                    {
+                        Id = Convert.ToInt32(reader["Id"]),
+                        LongUrl = reader["LongUrl"].ToString(),
+                        ShortCode = reader["ShortCode"].ToString(),
+                        ClickCount = Convert.ToInt32(reader["ClickCount"]),
+                        ExpiryDate = reader["ExpiryDate"] != DBNull.Value ? (DateTime?)reader["ExpiryDate"] : null
+                    });
+                }
+            }
+            return View(urls);
+        }
+
+        public ActionResult Edit(int id)
+        {
+            UrlModel model = new UrlModel();
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                string query = "SELECT * FROM UrlMappings WHERE Id = @Id";
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@Id", id);
+                conn.Open();
+                SqlDataReader reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    model.Id = id;
+                    model.LongUrl = reader["LongUrl"].ToString();
+                    model.ShortCode = reader["ShortCode"].ToString();
+                    model.Password = reader["Password"]?.ToString();
+                    model.ExpiryDate = reader["ExpiryDate"] != DBNull.Value ? (DateTime?)reader["ExpiryDate"] : null;
+                }
+            }
+            return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult Edit(UrlModel model)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                string update = "UPDATE UrlMappings SET LongUrl=@LongUrl, ShortCode=@ShortCode, Password=@Password, ExpiryDate=@ExpiryDate WHERE Id=@Id";
+                SqlCommand cmd = new SqlCommand(update, conn);
+                cmd.Parameters.AddWithValue("@Id", model.Id);
+                cmd.Parameters.AddWithValue("@LongUrl", model.LongUrl);
+                cmd.Parameters.AddWithValue("@ShortCode", model.ShortCode);
+                cmd.Parameters.AddWithValue("@Password", (object?)model.Password ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@ExpiryDate", (object?)model.ExpiryDate ?? DBNull.Value);
+                conn.Open();
+                cmd.ExecuteNonQuery();
+            }
+            return RedirectToAction("Dashboard");
+        }
+
+        public ActionResult Delete(int id)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                string delete = "DELETE FROM UrlMappings WHERE Id=@Id";
+                SqlCommand cmd = new SqlCommand(delete, conn);
+                cmd.Parameters.AddWithValue("@Id", id);
+                conn.Open();
+                cmd.ExecuteNonQuery();
+            }
+            return RedirectToAction("Dashboard");
         }
 
         private string GenerateShortCode()
