@@ -1,4 +1,4 @@
-﻿@* @model URL_Shortener.Models.UrlModel
+﻿@*@model URL_Shortener.Models.UrlModel
 @{
     ViewBag.Title = "URL Shortener";
     Layout = null;
@@ -29,7 +29,7 @@
             border: 1px solid rgba(0, 0, 0, 0.05);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-           
+
             border-radius: 1.5rem;
             padding: 2.5rem;
             max-width: 500px;
@@ -38,7 +38,7 @@
             transition: background 0.3s ease;
         }
 
-       
+
 
         .btn-custom {
             background-color: #607d8b;
@@ -85,7 +85,7 @@
 <body>
     <div class="shortener-card">
         <h2>🔗 Custom URL Shortener</h2>
-        
+
         @using (Html.BeginForm("ShortenUrl", "Url", FormMethod.Post))
         {
             <div class="mb-3">
@@ -115,9 +115,9 @@
         }
     </div>
 </body>
-</html> *@
+</html>*@
 
-                @model URL_Shortener.Models.UrlModel
+@model URL_Shortener.Models.UrlModel
 @{
     ViewBag.Title = "URL Shortener";
     Layout = null;
@@ -129,6 +129,8 @@
     <meta name="viewport" content="width=device-width" />
     <title>@ViewBag.Title</title>
     <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
     <style>
         body {
             margin: 0;
@@ -185,7 +187,6 @@
         .result {
             margin-top: 20px;
             text-align: center;
-
         }
 
         .copy-btn {
@@ -203,7 +204,7 @@
             text-align: center;
         }
 
-       
+
 
         .short-url {
             font-weight: bold;
@@ -215,60 +216,72 @@
     <div class="main-container">
         <h2>🔗 Custom URL Shortener</h2>
 
-        @using (Html.BeginForm("ShortenUrl", "Url", FormMethod.Post))
-        {
-            <label>Enter Long URL:</label>
-            @Html.TextBoxFor(m => m.LongUrl)
+        <form action="/Url/ShortenUrl" method="post">
+            <label>Enter Long URL:</label><br>
+            <input type="text" name="LongUrl"><br><br>
 
-            <label>Custom Alias (optional):</label>
-            @Html.TextBoxFor(m => m.CustomAlias)
+            <label>Custom Alias (optional):</label><br>
+            <input type="text" name="CustomAlias"><br><br>
 
-            <label>Password (optional):</label>
-            @Html.PasswordFor(m => m.Password)
+            <label>Password (optional):</label><br>
+            <input type="password" name="Password"><br><br>
 
-            <label>Expiry Date (optional):</label>
-            <input type="datetime-local" name="ExpiryDate" />
+            <label>Expiry Date (optional):</label><br>
+            <input type="datetime-local" name="ExpiryDate"><br><br>
 
             <div class="d-flex justify-content-center">
                 <input type="submit" value="Shorten URL" class="btn" />
             </div>
-        }
+        </form>
 
-        @if (ViewBag.ShortUrl != null)
-        {
-            <div class="result"> 
+    </div>
+
+    @if (ViewBag.ShortUrl != null)
+    {
+        <div class="main-container mx-5 " id="result">
+            <div class="result">
                 <strong>Short URL:</strong><br />
                 ✅ <span id="shortUrlText" class="short-url">
                     <a href="@ViewBag.ShortUrl" target="_blank">@ViewBag.ShortUrl</a>
                 </span>
-                
-                <br /> 
+
+                <br />
                 <button class="btn copy-btn my-2" onclick="copyToClipboard()">Copy</button>
 
-               
+
                 <div class="qr-container">
                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=@ViewBag.ShortUrl" alt="QR Code" />
                 </div>
             </div>
-        }
+        </div>
+    }
 
-        @if (ViewBag.Error != null)
-        {
+    @if (ViewBag.Error != null)
+    {
+
+        <div class="main-container mx-5 " id="result">
             <div class="error">@ViewBag.Error</div>
-        }
+        </div>
+    }
 
-       
-    </div>
+
+
 
     <script>
         function copyToClipboard() {
-            var copyText = document.getElementById("shortUrl");
-            copyText.select();
-            copyText.setSelectionRange(0, 99999);
-            document.execCommand("copy");
-            //alert("Copied the URL: " + copyText.value);
+            const urlText = document.getElementById("shortUrlText").textContent;
+            navigator.clipboard.writeText(urlText).then(() => {
+                alert("Short URL copied to clipboard!");
+            });
         }
 
+        $(document).ready(function (){
+
+
+            $(".btn").click(function (){
+                $("#result").show();
+            })
+        })
     </script>
 </body>
-</html>
+</html> 
